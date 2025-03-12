@@ -1,0 +1,111 @@
+---
+title: "BIOL432_W9"
+output:
+  html_document: default
+  pdf_document: default
+date: "2025-03-11"
+---
+
+Sara Gama 20292893
+Christina Meier 20213829
+Mari Hyde 20261425
+Maddigan Kales 20259834
+
+
+https://github.com/marihyde/Biol432_W9
+
+
+
+```{r, message=FALSE}
+
+library(ggplot2)
+library(vegan)
+library(ggtree)
+library(ape)
+library(dplyr)
+
+data<-read.csv("/Users/marihyde/Desktop/FloristicSurvey.csv")
+
+```
+
+
+
+## PART 1
+
+
+Selecting OTUs from data set and creating binary matrix: 
+
+```{r, warning=FALSE}
+OTUs<- data %>% select(11:44)
+
+OTUs[OTUs>0]<-1
+
+
+
+OTUs<- OTUs %>% cbind(data$Quadrate)
+
+OTU_bin_dist<-dist(OTUs,method='binary')
+
+
+```
+
+
+
+
+```{r}
+quadrate<- data.frame(quadrate=data$Quadrate)
+rownames(quadrate)<-quadrate$quadrate
+
+
+
+```
+
+
+
+
+```{r}
+
+OTU_tree<-nj(OTU_bin_dist)
+
+ggtree(OTU_tree, layout="rectangular") %<+% quadrate+
+  geom_tiplab(aes(colour= "quadrate")) +
+  theme(legend.position="right")+
+  labs(title="Distribution of Species of Garlic Mustard Across Sampled Communities")
+
+```
+
+Figure 1: Shows the relationship between species of garlic mustard based on their location in their community. The tree was constructed using a neighbor-joining (NJ) algorithm with a binary distance matrix based on operational taxonomic units (species) across quadrats.
+
+
+This figure displays how the identities of garlic mustard change across different sampling communities, or quadrates. However, the figure does not correctly display the quadrate codes, therefore grouping each species under one quadrate. The phylogenetic tree shows the similarity of garlic mustard communities across quadrats based on species composition. Closely clustered tips indicate similar species assemblages, while longer branches suggest greater differences. Grouped quadrates may share environmental factors or dispersal patterns, whereas widely spaced ones reflect distinct communities. The tree represents species presence/absence patterns rather than genetic relationships, highlighting community similarity instead of evolutionary history. The relative relationships between species will draw insight into the biodiversity and structure of the community in each quadrate. 
+
+
+## PART 2 
+
+Generating and plotting NMDs:
+
+```{r}
+
+OTU<- data %>% select(11:44)
+
+OTU_dist<- vegdist(OTU,method="bray",binary=F)
+
+set.seed(13)
+
+NMDSdat<-metaMDS(OTU_dist,k=2) # k = 2 dimensions
+
+PDat<-data.frame(NMDS1=NMDSdat$points[,1],NMDS2=NMDSdat$points[,2],SampleID=row.names(OTU))
+
+ggplot(aes(x=NMDS1,y=NMDS2, colour = SampleID ),alpha=I(0.6),data=PDat) +geom_point() + theme_bw()+
+  labs(title="Effect of Garlic Mustard on Plant Community Composition")
+
+
+
+
+```
+Figure 2: Non-metric multidimensional scaling (NMDS) plot showing the differences in garlic mustard communities based on Bray-Curtis dissimilarity. Each point represents a sample, with colors indicating different sample IDs (species). The analysis was performed using two NMDS dimensions (k = 2) to visualize patterns in community composition across sampled locations.
+
+
+The plot assesses whether garlic mustard presence or sampling population has a stronger effect on plant community composition. A correctly labeled graph would clearly differentiate between the presence/absence of garlic mustard ("in/out) to assess which factor has a stronger effect on plant community composition. Although the labeling is not correctly displayed, the points themselves are correct. If points cluster by garlic mustard presence (In/Out), this suggests it has a significant effect on community structure. If clustering aligns more with sampling population (quadrate), then environmental factors drive community differences more than the presence/absence of garlic mustard. 
+
+
